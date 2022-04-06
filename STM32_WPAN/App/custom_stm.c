@@ -30,8 +30,11 @@
 /* Private typedef -----------------------------------------------------------*/
 typedef struct{
   uint16_t  CustomDht11Hdle;                    /**< DHT11 handle */
-  uint16_t  CustomTemperatureHdle;                  /**< Temperature handle */
-  uint16_t  CustomHumidityHdle;                  /**< Humidity handle */
+  uint16_t  CustomSendHdle;                  /**< SEND handle */
+  uint16_t  CustomRecvHdle;                  /**< RECV handle */
+  uint16_t  CustomClockHdle;                  /**< CLOCK handle */
+  uint16_t  CustomRoundHdle;                  /**< ROUND handle */
+  uint16_t  CustomValueHdle;                  /**< VALUE handle */
 }CustomContext_t;
 
 /* USER CODE BEGIN PTD */
@@ -61,8 +64,11 @@ typedef struct{
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-static const uint8_t SizeTemperature=2;
-static const uint8_t SizeHumidity=2;
+static const uint8_t SizeSend=44;
+static const uint8_t SizeRecv=44;
+static const uint8_t SizeClock=8;
+static const uint8_t SizeRound=8;
+static const uint8_t SizeValue=4;
 /**
  * START of Section BLE_DRIVER_CONTEXT
  */
@@ -106,9 +112,6 @@ do {\
  D973F2E1-B19E-11E2-9E96-0800200C9A66: Characteristic_1 128bits UUID
  D973F2E2-B19E-11E2-9E96-0800200C9A66: Characteristic_2 128bits UUID
  */
-#define COPY_DHT11_UUID(uuid_struct)          COPY_UUID_128(uuid_struct,0x00,0x00,0x00,0x00,0xcc,0x7a,0x48,0x2a,0x98,0x4a,0x7f,0x2e,0xd5,0xb3,0xe5,0x8f)
-#define COPY_TEMPERATURE_UUID(uuid_struct)    COPY_UUID_128(uuid_struct,0x00,0x00,0x00,0x00,0x8e,0x22,0x45,0x41,0x9d,0x4c,0x21,0xed,0xae,0x82,0xed,0x19)
-#define COPY_HUMIDITY_UUID(uuid_struct)    COPY_UUID_128(uuid_struct,0x00,0x00,0x00,0x01,0x8e,0x22,0x45,0x41,0x9d,0x4c,0x21,0xed,0xae,0x82,0xed,0x19)
 
 /* USER CODE BEGIN PF */
 
@@ -144,7 +147,7 @@ static SVCCTL_EvtAckStatus_t Custom_STM_Event_Handler(void *Event)
 
           /* USER CODE END EVT_BLUE_GATT_ATTRIBUTE_MODIFIED_BEGIN */
           attribute_modified = (aci_gatt_attribute_modified_event_rp0*)blecore_evt->data;
-          if(attribute_modified->Attr_Handle == (CustomContext.CustomTemperatureHdle + CHARACTERISTIC_DESCRIPTOR_ATTRIBUTE_OFFSET))
+          if(attribute_modified->Attr_Handle == (CustomContext.CustomSendHdle + CHARACTERISTIC_DESCRIPTOR_ATTRIBUTE_OFFSET))
           {
             return_value = SVCCTL_EvtAckFlowEnable;
             /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_1 */
@@ -161,7 +164,7 @@ static SVCCTL_EvtAckStatus_t Custom_STM_Event_Handler(void *Event)
                 /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_1_Disabled_BEGIN */
 
                 /* USER CODE END CUSTOM_STM_Service_1_Char_1_Disabled_BEGIN */
-                Notification.Custom_Evt_Opcode = CUSTOM_STM_TEMPERATURE_NOTIFY_DISABLED_EVT;
+                Notification.Custom_Evt_Opcode = CUSTOM_STM_SEND_NOTIFY_DISABLED_EVT;
                 Custom_STM_App_Notification(&Notification);
                 /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_1_Disabled_END */
 
@@ -173,7 +176,7 @@ static SVCCTL_EvtAckStatus_t Custom_STM_Event_Handler(void *Event)
                 /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_1_COMSVC_Notification_BEGIN */
 
                 /* USER CODE END CUSTOM_STM_Service_1_Char_1_COMSVC_Notification_BEGIN */
-                Notification.Custom_Evt_Opcode = CUSTOM_STM_TEMPERATURE_NOTIFY_ENABLED_EVT;
+                Notification.Custom_Evt_Opcode = CUSTOM_STM_SEND_NOTIFY_ENABLED_EVT;
                 Custom_STM_App_Notification(&Notification);
                 /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_1_COMSVC_Notification_END */
 
@@ -186,9 +189,9 @@ static SVCCTL_EvtAckStatus_t Custom_STM_Event_Handler(void *Event)
                 /* USER CODE END CUSTOM_STM_Service_1_Char_1_default */
               break;
             }
-          }  /* if(attribute_modified->Attr_Handle == (CustomContext.CustomTemperatureHdle + CHARACTERISTIC_DESCRIPTOR_ATTRIBUTE_OFFSET))*/
+          }  /* if(attribute_modified->Attr_Handle == (CustomContext.CustomSendHdle + CHARACTERISTIC_DESCRIPTOR_ATTRIBUTE_OFFSET))*/
 
-          else if(attribute_modified->Attr_Handle == (CustomContext.CustomHumidityHdle + CHARACTERISTIC_DESCRIPTOR_ATTRIBUTE_OFFSET))
+          else if(attribute_modified->Attr_Handle == (CustomContext.CustomRecvHdle + CHARACTERISTIC_DESCRIPTOR_ATTRIBUTE_OFFSET))
           {
             return_value = SVCCTL_EvtAckFlowEnable;
             /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_2 */
@@ -205,7 +208,7 @@ static SVCCTL_EvtAckStatus_t Custom_STM_Event_Handler(void *Event)
                 /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_2_Disabled_BEGIN */
 
                 /* USER CODE END CUSTOM_STM_Service_1_Char_2_Disabled_BEGIN */
-                Notification.Custom_Evt_Opcode = CUSTOM_STM_HUMIDITY_NOTIFY_DISABLED_EVT;
+                Notification.Custom_Evt_Opcode = CUSTOM_STM_RECV_NOTIFY_DISABLED_EVT;
                 Custom_STM_App_Notification(&Notification);
                 /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_2_Disabled_END */
 
@@ -217,7 +220,7 @@ static SVCCTL_EvtAckStatus_t Custom_STM_Event_Handler(void *Event)
                 /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_2_COMSVC_Notification_BEGIN */
 
                 /* USER CODE END CUSTOM_STM_Service_1_Char_2_COMSVC_Notification_BEGIN */
-                Notification.Custom_Evt_Opcode = CUSTOM_STM_HUMIDITY_NOTIFY_ENABLED_EVT;
+                Notification.Custom_Evt_Opcode = CUSTOM_STM_RECV_NOTIFY_ENABLED_EVT;
                 Custom_STM_App_Notification(&Notification);
                 /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_2_COMSVC_Notification_END */
 
@@ -230,7 +233,139 @@ static SVCCTL_EvtAckStatus_t Custom_STM_Event_Handler(void *Event)
                 /* USER CODE END CUSTOM_STM_Service_1_Char_2_default */
               break;
             }
-          }  /* if(attribute_modified->Attr_Handle == (CustomContext.CustomHumidityHdle + CHARACTERISTIC_DESCRIPTOR_ATTRIBUTE_OFFSET))*/
+          }  /* if(attribute_modified->Attr_Handle == (CustomContext.CustomRecvHdle + CHARACTERISTIC_DESCRIPTOR_ATTRIBUTE_OFFSET))*/
+
+          else if(attribute_modified->Attr_Handle == (CustomContext.CustomClockHdle + CHARACTERISTIC_DESCRIPTOR_ATTRIBUTE_OFFSET))
+          {
+            return_value = SVCCTL_EvtAckFlowEnable;
+            /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_3 */
+
+            /* USER CODE END CUSTOM_STM_Service_1_Char_3 */
+            switch(attribute_modified->Attr_Data[0])
+            {
+              /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_3_attribute_modified */
+
+              /* USER CODE END CUSTOM_STM_Service_1_Char_3_attribute_modified */
+
+              /* Disabled Notification management */
+              case (!(COMSVC_Notification)):
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_3_Disabled_BEGIN */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_3_Disabled_BEGIN */
+                Notification.Custom_Evt_Opcode = CUSTOM_STM_CLOCK_NOTIFY_DISABLED_EVT;
+                Custom_STM_App_Notification(&Notification);
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_3_Disabled_END */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_3_Disabled_END */
+                break;
+
+              /* Enabled Notification management */
+              case COMSVC_Notification:
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_3_COMSVC_Notification_BEGIN */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_3_COMSVC_Notification_BEGIN */
+                Notification.Custom_Evt_Opcode = CUSTOM_STM_CLOCK_NOTIFY_ENABLED_EVT;
+                Custom_STM_App_Notification(&Notification);
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_3_COMSVC_Notification_END */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_3_COMSVC_Notification_END */
+                break;
+
+              default:
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_3_default */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_3_default */
+              break;
+            }
+          }  /* if(attribute_modified->Attr_Handle == (CustomContext.CustomClockHdle + CHARACTERISTIC_DESCRIPTOR_ATTRIBUTE_OFFSET))*/
+
+          else if(attribute_modified->Attr_Handle == (CustomContext.CustomRoundHdle + CHARACTERISTIC_DESCRIPTOR_ATTRIBUTE_OFFSET))
+          {
+            return_value = SVCCTL_EvtAckFlowEnable;
+            /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_4 */
+
+            /* USER CODE END CUSTOM_STM_Service_1_Char_4 */
+            switch(attribute_modified->Attr_Data[0])
+            {
+              /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_4_attribute_modified */
+
+              /* USER CODE END CUSTOM_STM_Service_1_Char_4_attribute_modified */
+
+              /* Disabled Notification management */
+              case (!(COMSVC_Notification)):
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_4_Disabled_BEGIN */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_4_Disabled_BEGIN */
+                Notification.Custom_Evt_Opcode = CUSTOM_STM_ROUND_NOTIFY_DISABLED_EVT;
+                Custom_STM_App_Notification(&Notification);
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_4_Disabled_END */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_4_Disabled_END */
+                break;
+
+              /* Enabled Notification management */
+              case COMSVC_Notification:
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_4_COMSVC_Notification_BEGIN */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_4_COMSVC_Notification_BEGIN */
+                Notification.Custom_Evt_Opcode = CUSTOM_STM_ROUND_NOTIFY_ENABLED_EVT;
+                Custom_STM_App_Notification(&Notification);
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_4_COMSVC_Notification_END */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_4_COMSVC_Notification_END */
+                break;
+
+              default:
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_4_default */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_4_default */
+              break;
+            }
+          }  /* if(attribute_modified->Attr_Handle == (CustomContext.CustomRoundHdle + CHARACTERISTIC_DESCRIPTOR_ATTRIBUTE_OFFSET))*/
+
+          else if(attribute_modified->Attr_Handle == (CustomContext.CustomValueHdle + CHARACTERISTIC_DESCRIPTOR_ATTRIBUTE_OFFSET))
+          {
+            return_value = SVCCTL_EvtAckFlowEnable;
+            /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_5 */
+
+            /* USER CODE END CUSTOM_STM_Service_1_Char_5 */
+            switch(attribute_modified->Attr_Data[0])
+            {
+              /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_5_attribute_modified */
+
+              /* USER CODE END CUSTOM_STM_Service_1_Char_5_attribute_modified */
+
+              /* Disabled Notification management */
+              case (!(COMSVC_Notification)):
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_5_Disabled_BEGIN */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_5_Disabled_BEGIN */
+                Notification.Custom_Evt_Opcode = CUSTOM_STM_VALUE_NOTIFY_DISABLED_EVT;
+                Custom_STM_App_Notification(&Notification);
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_5_Disabled_END */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_5_Disabled_END */
+                break;
+
+              /* Enabled Notification management */
+              case COMSVC_Notification:
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_5_COMSVC_Notification_BEGIN */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_5_COMSVC_Notification_BEGIN */
+                Notification.Custom_Evt_Opcode = CUSTOM_STM_VALUE_NOTIFY_ENABLED_EVT;
+                Custom_STM_App_Notification(&Notification);
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_5_COMSVC_Notification_END */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_5_COMSVC_Notification_END */
+                break;
+
+              default:
+                /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_5_default */
+
+                /* USER CODE END CUSTOM_STM_Service_1_Char_5_default */
+              break;
+            }
+          }  /* if(attribute_modified->Attr_Handle == (CustomContext.CustomValueHdle + CHARACTERISTIC_DESCRIPTOR_ATTRIBUTE_OFFSET))*/
 
           /* USER CODE BEGIN EVT_BLUE_GATT_ATTRIBUTE_MODIFIED_END */
 
@@ -309,48 +444,93 @@ void SVCCTL_InitCustomSvc(void)
   /*
    *          DHT11
    *
-   * Max_Attribute_Records = 1 + 2*2 + 1*no_of_char_with_notify_or_indicate_property + 1*no_of_char_with_broadcast_property
+   * Max_Attribute_Records = 1 + 2*5 + 1*no_of_char_with_notify_or_indicate_property + 1*no_of_char_with_broadcast_property
    * service_max_attribute_record = 1 for DHT11 +
-   *                                2 for Temperature +
-   *                                2 for Humidity +
-   *                                1 for Temperature configuration descriptor +
-   *                                1 for Humidity configuration descriptor +
-   *                              = 7
+   *                                2 for SEND +
+   *                                2 for RECV +
+   *                                2 for CLOCK +
+   *                                2 for ROUND +
+   *                                2 for VALUE +
+   *                                1 for SEND configuration descriptor +
+   *                                1 for RECV configuration descriptor +
+   *                                1 for CLOCK configuration descriptor +
+   *                                1 for ROUND configuration descriptor +
+   *                                1 for VALUE configuration descriptor +
+   *                              = 16
    */
 
-  COPY_DHT11_UUID(uuid.Char_UUID_128);
-  aci_gatt_add_service(UUID_TYPE_128,
+  uuid.Char_UUID_16 = 0x0000;
+  aci_gatt_add_service(UUID_TYPE_16,
                        (Service_UUID_t *) &uuid,
                        PRIMARY_SERVICE,
-                       7,
+                       16,
                        &(CustomContext.CustomDht11Hdle));
 
   /**
-   *  Temperature
+   *  SEND
    */
-  COPY_TEMPERATURE_UUID(uuid.Char_UUID_128);
+  uuid.Char_UUID_16 = 0x0001;
   aci_gatt_add_char(CustomContext.CustomDht11Hdle,
-                    UUID_TYPE_128, &uuid,
-                    SizeTemperature,
+                    UUID_TYPE_16, &uuid,
+                    SizeSend,
                     CHAR_PROP_NOTIFY,
                     ATTR_PERMISSION_NONE,
                     GATT_DONT_NOTIFY_EVENTS,
                     0x10,
                     CHAR_VALUE_LEN_CONSTANT,
-                    &(CustomContext.CustomTemperatureHdle));
+                    &(CustomContext.CustomSendHdle));
   /**
-   *  Humidity
+   *  RECV
    */
-  COPY_HUMIDITY_UUID(uuid.Char_UUID_128);
+  uuid.Char_UUID_16 = 0x0010;
   aci_gatt_add_char(CustomContext.CustomDht11Hdle,
-                    UUID_TYPE_128, &uuid,
-                    SizeHumidity,
+                    UUID_TYPE_16, &uuid,
+                    SizeRecv,
                     CHAR_PROP_NOTIFY,
                     ATTR_PERMISSION_NONE,
                     GATT_DONT_NOTIFY_EVENTS,
                     0x10,
                     CHAR_VALUE_LEN_CONSTANT,
-                    &(CustomContext.CustomHumidityHdle));
+                    &(CustomContext.CustomRecvHdle));
+  /**
+   *  CLOCK
+   */
+  uuid.Char_UUID_16 = 0x0011;
+  aci_gatt_add_char(CustomContext.CustomDht11Hdle,
+                    UUID_TYPE_16, &uuid,
+                    SizeClock,
+                    CHAR_PROP_NOTIFY,
+                    ATTR_PERMISSION_NONE,
+                    GATT_NOTIFY_ATTRIBUTE_WRITE | GATT_NOTIFY_WRITE_REQ_AND_WAIT_FOR_APPL_RESP | GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
+                    0x10,
+                    CHAR_VALUE_LEN_CONSTANT,
+                    &(CustomContext.CustomClockHdle));
+  /**
+   *  ROUND
+   */
+  uuid.Char_UUID_16 = 0x0100;
+  aci_gatt_add_char(CustomContext.CustomDht11Hdle,
+                    UUID_TYPE_16, &uuid,
+                    SizeRound,
+                    CHAR_PROP_NOTIFY,
+                    ATTR_PERMISSION_NONE,
+                    GATT_NOTIFY_ATTRIBUTE_WRITE | GATT_NOTIFY_WRITE_REQ_AND_WAIT_FOR_APPL_RESP | GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
+                    0x10,
+                    CHAR_VALUE_LEN_CONSTANT,
+                    &(CustomContext.CustomRoundHdle));
+  /**
+   *  VALUE
+   */
+  uuid.Char_UUID_16 = 0x0101;
+  aci_gatt_add_char(CustomContext.CustomDht11Hdle,
+                    UUID_TYPE_16, &uuid,
+                    SizeValue,
+                    CHAR_PROP_NOTIFY,
+                    ATTR_PERMISSION_NONE,
+                    GATT_NOTIFY_ATTRIBUTE_WRITE | GATT_NOTIFY_WRITE_REQ_AND_WAIT_FOR_APPL_RESP | GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
+                    0x10,
+                    CHAR_VALUE_LEN_CONSTANT,
+                    &(CustomContext.CustomValueHdle));
 
   /* USER CODE BEGIN SVCCTL_InitCustomSvc_2 */
 
@@ -375,26 +555,59 @@ tBleStatus Custom_STM_App_Update_Char(Custom_STM_Char_Opcode_t CharOpcode, uint8
   switch(CharOpcode)
   {
 
-    case CUSTOM_STM_TEMPERATURE:
+    case CUSTOM_STM_SEND:
       result = aci_gatt_update_char_value(CustomContext.CustomDht11Hdle,
-                                          CustomContext.CustomTemperatureHdle,
+                                          CustomContext.CustomSendHdle,
                                           0, /* charValOffset */
-                                          SizeTemperature, /* charValueLen */
+                                          SizeSend, /* charValueLen */
                                           (uint8_t *)  pPayload);
       /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_1*/
 
       /* USER CODE END CUSTOM_STM_Service_1_Char_1*/
       break;
 
-    case CUSTOM_STM_HUMIDITY:
+    case CUSTOM_STM_RECV:
       result = aci_gatt_update_char_value(CustomContext.CustomDht11Hdle,
-                                          CustomContext.CustomHumidityHdle,
+                                          CustomContext.CustomRecvHdle,
                                           0, /* charValOffset */
-                                          SizeHumidity, /* charValueLen */
+                                          SizeRecv, /* charValueLen */
                                           (uint8_t *)  pPayload);
       /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_2*/
 
       /* USER CODE END CUSTOM_STM_Service_1_Char_2*/
+      break;
+
+    case CUSTOM_STM_CLOCK:
+      result = aci_gatt_update_char_value(CustomContext.CustomDht11Hdle,
+                                          CustomContext.CustomClockHdle,
+                                          0, /* charValOffset */
+                                          SizeClock, /* charValueLen */
+                                          (uint8_t *)  pPayload);
+      /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_3*/
+
+      /* USER CODE END CUSTOM_STM_Service_1_Char_3*/
+      break;
+
+    case CUSTOM_STM_ROUND:
+      result = aci_gatt_update_char_value(CustomContext.CustomDht11Hdle,
+                                          CustomContext.CustomRoundHdle,
+                                          0, /* charValOffset */
+                                          SizeRound, /* charValueLen */
+                                          (uint8_t *)  pPayload);
+      /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_4*/
+
+      /* USER CODE END CUSTOM_STM_Service_1_Char_4*/
+      break;
+
+    case CUSTOM_STM_VALUE:
+      result = aci_gatt_update_char_value(CustomContext.CustomDht11Hdle,
+                                          CustomContext.CustomValueHdle,
+                                          0, /* charValOffset */
+                                          SizeValue, /* charValueLen */
+                                          (uint8_t *)  pPayload);
+      /* USER CODE BEGIN CUSTOM_STM_Service_1_Char_5*/
+
+      /* USER CODE END CUSTOM_STM_Service_1_Char_5*/
       break;
 
     default:
