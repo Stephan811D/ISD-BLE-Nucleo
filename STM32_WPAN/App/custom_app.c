@@ -36,8 +36,11 @@
 typedef struct
 {
   /* DHT11 */
-  uint8_t               Temperature_Notification_Status;
-  uint8_t               Humidity_Notification_Status;
+  uint8_t               Send_Notification_Status;
+  uint8_t               Recv_Notification_Status;
+  uint8_t               Clock_Notification_Status;
+  uint8_t               Round_Notification_Status;
+  uint8_t               Value_Notification_Status;
   /* USER CODE BEGIN CUSTOM_APP_Context_t */
 
   /* USER CODE END CUSTOM_APP_Context_t */
@@ -80,10 +83,16 @@ uint8_t SecureReadData;
 
 /* Private function prototypes -----------------------------------------------*/
   /* DHT11 */
-static void Custom_Temperature_Update_Char(void);
-static void Custom_Temperature_Send_Notification(void);
-static void Custom_Humidity_Update_Char(void);
-static void Custom_Humidity_Send_Notification(void);
+static void Custom_Send_Update_Char(void);
+static void Custom_Send_Send_Notification(void);
+static void Custom_Recv_Update_Char(void);
+static void Custom_Recv_Send_Notification(void);
+static void Custom_Clock_Update_Char(void);
+static void Custom_Clock_Send_Notification(void);
+static void Custom_Round_Update_Char(void);
+static void Custom_Round_Send_Notification(void);
+static void Custom_Value_Update_Char(void);
+static void Custom_Value_Send_Notification(void);
 
 /* USER CODE BEGIN PFP */
 
@@ -102,28 +111,64 @@ void Custom_STM_App_Notification(Custom_STM_App_Notification_evt_t *pNotificatio
     /* USER CODE END CUSTOM_STM_App_Notification_Custom_Evt_Opcode */
 
   /* DHT11 */
-    case CUSTOM_STM_TEMPERATURE_NOTIFY_ENABLED_EVT:
-      /* USER CODE BEGIN CUSTOM_STM_TEMPERATURE_NOTIFY_ENABLED_EVT */
+    case CUSTOM_STM_SEND_NOTIFY_ENABLED_EVT:
+      /* USER CODE BEGIN CUSTOM_STM_SEND_NOTIFY_ENABLED_EVT */
 
-      /* USER CODE END CUSTOM_STM_TEMPERATURE_NOTIFY_ENABLED_EVT */
+      /* USER CODE END CUSTOM_STM_SEND_NOTIFY_ENABLED_EVT */
       break;
 
-    case CUSTOM_STM_TEMPERATURE_NOTIFY_DISABLED_EVT:
-      /* USER CODE BEGIN CUSTOM_STM_TEMPERATURE_NOTIFY_DISABLED_EVT */
+    case CUSTOM_STM_SEND_NOTIFY_DISABLED_EVT:
+      /* USER CODE BEGIN CUSTOM_STM_SEND_NOTIFY_DISABLED_EVT */
 
-      /* USER CODE END CUSTOM_STM_TEMPERATURE_NOTIFY_DISABLED_EVT */
+      /* USER CODE END CUSTOM_STM_SEND_NOTIFY_DISABLED_EVT */
       break;
 
-    case CUSTOM_STM_HUMIDITY_NOTIFY_ENABLED_EVT:
-      /* USER CODE BEGIN CUSTOM_STM_HUMIDITY_NOTIFY_ENABLED_EVT */
+    case CUSTOM_STM_RECV_NOTIFY_ENABLED_EVT:
+      /* USER CODE BEGIN CUSTOM_STM_RECV_NOTIFY_ENABLED_EVT */
 
-      /* USER CODE END CUSTOM_STM_HUMIDITY_NOTIFY_ENABLED_EVT */
+      /* USER CODE END CUSTOM_STM_RECV_NOTIFY_ENABLED_EVT */
       break;
 
-    case CUSTOM_STM_HUMIDITY_NOTIFY_DISABLED_EVT:
-      /* USER CODE BEGIN CUSTOM_STM_HUMIDITY_NOTIFY_DISABLED_EVT */
+    case CUSTOM_STM_RECV_NOTIFY_DISABLED_EVT:
+      /* USER CODE BEGIN CUSTOM_STM_RECV_NOTIFY_DISABLED_EVT */
 
-      /* USER CODE END CUSTOM_STM_HUMIDITY_NOTIFY_DISABLED_EVT */
+      /* USER CODE END CUSTOM_STM_RECV_NOTIFY_DISABLED_EVT */
+      break;
+
+    case CUSTOM_STM_CLOCK_NOTIFY_ENABLED_EVT:
+      /* USER CODE BEGIN CUSTOM_STM_CLOCK_NOTIFY_ENABLED_EVT */
+
+      /* USER CODE END CUSTOM_STM_CLOCK_NOTIFY_ENABLED_EVT */
+      break;
+
+    case CUSTOM_STM_CLOCK_NOTIFY_DISABLED_EVT:
+      /* USER CODE BEGIN CUSTOM_STM_CLOCK_NOTIFY_DISABLED_EVT */
+
+      /* USER CODE END CUSTOM_STM_CLOCK_NOTIFY_DISABLED_EVT */
+      break;
+
+    case CUSTOM_STM_ROUND_NOTIFY_ENABLED_EVT:
+      /* USER CODE BEGIN CUSTOM_STM_ROUND_NOTIFY_ENABLED_EVT */
+
+      /* USER CODE END CUSTOM_STM_ROUND_NOTIFY_ENABLED_EVT */
+      break;
+
+    case CUSTOM_STM_ROUND_NOTIFY_DISABLED_EVT:
+      /* USER CODE BEGIN CUSTOM_STM_ROUND_NOTIFY_DISABLED_EVT */
+
+      /* USER CODE END CUSTOM_STM_ROUND_NOTIFY_DISABLED_EVT */
+      break;
+
+    case CUSTOM_STM_VALUE_NOTIFY_ENABLED_EVT:
+      /* USER CODE BEGIN CUSTOM_STM_VALUE_NOTIFY_ENABLED_EVT */
+
+      /* USER CODE END CUSTOM_STM_VALUE_NOTIFY_ENABLED_EVT */
+      break;
+
+    case CUSTOM_STM_VALUE_NOTIFY_DISABLED_EVT:
+      /* USER CODE BEGIN CUSTOM_STM_VALUE_NOTIFY_DISABLED_EVT */
+
+      /* USER CODE END CUSTOM_STM_VALUE_NOTIFY_DISABLED_EVT */
       break;
 
     default:
@@ -194,23 +239,23 @@ void Custom_APP_Init(void)
  *************************************************************/
 
   /* DHT11 */
-void Custom_Temperature_Update_Char(void) /* Property Read */
+void Custom_Send_Update_Char(void) /* Property Read */
 {
-  Custom_STM_App_Update_Char(CUSTOM_STM_TEMPERATURE, (uint8_t *)UpdateCharData);
-  /* USER CODE BEGIN Temperature_UC*/
+  Custom_STM_App_Update_Char(CUSTOM_STM_SEND, (uint8_t *)UpdateCharData);
+  /* USER CODE BEGIN Send_UC*/
 
-  /* USER CODE END Temperature_UC*/
+  /* USER CODE END Send_UC*/
   return;
 }
 
-void Custom_Temperature_Send_Notification(void) /* Property Notification */
+void Custom_Send_Send_Notification(void) /* Property Notification */
  {
-  if(Custom_App_Context.Temperature_Notification_Status)
+  if(Custom_App_Context.Send_Notification_Status)
   {
-    Custom_STM_App_Update_Char(CUSTOM_STM_TEMPERATURE, (uint8_t *)NotifyCharData);
-    /* USER CODE BEGIN Temperature_NS*/
+    Custom_STM_App_Update_Char(CUSTOM_STM_SEND, (uint8_t *)NotifyCharData);
+    /* USER CODE BEGIN Send_NS*/
 
-    /* USER CODE END Temperature_NS*/
+    /* USER CODE END Send_NS*/
   }
   else
   {
@@ -219,23 +264,98 @@ void Custom_Temperature_Send_Notification(void) /* Property Notification */
   return;
 }
 
-void Custom_Humidity_Update_Char(void) /* Property Read */
+void Custom_Recv_Update_Char(void) /* Property Read */
 {
-  Custom_STM_App_Update_Char(CUSTOM_STM_HUMIDITY, (uint8_t *)UpdateCharData);
-  /* USER CODE BEGIN Humidity_UC*/
+  Custom_STM_App_Update_Char(CUSTOM_STM_RECV, (uint8_t *)UpdateCharData);
+  /* USER CODE BEGIN Recv_UC*/
 
-  /* USER CODE END Humidity_UC*/
+  /* USER CODE END Recv_UC*/
   return;
 }
 
-void Custom_Humidity_Send_Notification(void) /* Property Notification */
+void Custom_Recv_Send_Notification(void) /* Property Notification */
  {
-  if(Custom_App_Context.Humidity_Notification_Status)
+  if(Custom_App_Context.Recv_Notification_Status)
   {
-    Custom_STM_App_Update_Char(CUSTOM_STM_HUMIDITY, (uint8_t *)NotifyCharData);
-    /* USER CODE BEGIN Humidity_NS*/
+    Custom_STM_App_Update_Char(CUSTOM_STM_RECV, (uint8_t *)NotifyCharData);
+    /* USER CODE BEGIN Recv_NS*/
 
-    /* USER CODE END Humidity_NS*/
+    /* USER CODE END Recv_NS*/
+  }
+  else
+  {
+    APP_DBG_MSG("-- CUSTOM APPLICATION : CAN'T INFORM CLIENT -  NOTIFICATION DISABLED\n ");
+  }
+  return;
+}
+
+void Custom_Clock_Update_Char(void) /* Property Read */
+{
+  Custom_STM_App_Update_Char(CUSTOM_STM_CLOCK, (uint8_t *)UpdateCharData);
+  /* USER CODE BEGIN Clock_UC*/
+
+  /* USER CODE END Clock_UC*/
+  return;
+}
+
+void Custom_Clock_Send_Notification(void) /* Property Notification */
+ {
+  if(Custom_App_Context.Clock_Notification_Status)
+  {
+    Custom_STM_App_Update_Char(CUSTOM_STM_CLOCK, (uint8_t *)NotifyCharData);
+    /* USER CODE BEGIN Clock_NS*/
+
+    /* USER CODE END Clock_NS*/
+  }
+  else
+  {
+    APP_DBG_MSG("-- CUSTOM APPLICATION : CAN'T INFORM CLIENT -  NOTIFICATION DISABLED\n ");
+  }
+  return;
+}
+
+void Custom_Round_Update_Char(void) /* Property Read */
+{
+  Custom_STM_App_Update_Char(CUSTOM_STM_ROUND, (uint8_t *)UpdateCharData);
+  /* USER CODE BEGIN Round_UC*/
+
+  /* USER CODE END Round_UC*/
+  return;
+}
+
+void Custom_Round_Send_Notification(void) /* Property Notification */
+ {
+  if(Custom_App_Context.Round_Notification_Status)
+  {
+    Custom_STM_App_Update_Char(CUSTOM_STM_ROUND, (uint8_t *)NotifyCharData);
+    /* USER CODE BEGIN Round_NS*/
+
+    /* USER CODE END Round_NS*/
+  }
+  else
+  {
+    APP_DBG_MSG("-- CUSTOM APPLICATION : CAN'T INFORM CLIENT -  NOTIFICATION DISABLED\n ");
+  }
+  return;
+}
+
+void Custom_Value_Update_Char(void) /* Property Read */
+{
+  Custom_STM_App_Update_Char(CUSTOM_STM_VALUE, (uint8_t *)UpdateCharData);
+  /* USER CODE BEGIN Value_UC*/
+
+  /* USER CODE END Value_UC*/
+  return;
+}
+
+void Custom_Value_Send_Notification(void) /* Property Notification */
+ {
+  if(Custom_App_Context.Value_Notification_Status)
+  {
+    Custom_STM_App_Update_Char(CUSTOM_STM_VALUE, (uint8_t *)NotifyCharData);
+    /* USER CODE BEGIN Value_NS*/
+
+    /* USER CODE END Value_NS*/
   }
   else
   {
